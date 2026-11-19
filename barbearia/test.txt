@@ -1,0 +1,12 @@
+foque na parte de admin, estou achando incompleto ainda e que poder ficar mais completo e moderno, com isso me de sugestões de melhorias, antes de executar
+
+Melhore o site, adicionando pwa, para que eu posso abaixar o site
+
+melhorar o menu de hamburguês do mobile
+
+melhorar a parte de contato do home
+
+melhorar o rodapé do home
+
+mude o botão de voltar ao site, na pagina de login. para o lado esquerdo na parte superior da tela
+

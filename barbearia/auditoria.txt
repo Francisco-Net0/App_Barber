@@ -1,0 +1,91 @@
+RELATÓRIO DE AUDITORIA PRÉ-LANÇAMENTO
+
+Projeto: Agendamento online para barbearia
+Data: 18/11/2026
+Conclusão: NÃO APROVADO PARA LANÇAMENTO
+
+RESUMO EXECUTIVO
+
+O build de produção foi concluído e a auditoria final de dependências não encontrou vulnerabilidades conhecidas. Os fluxos de interface e responsividade verificados com dados fictícios funcionaram. A recuperação de senha foi implementada e exercitada contra um serviço local simulado.
+
+Não foi acessado nem alterado o Supabase remoto, não foram criados/cancelados agendamentos reais e nenhum e-mail ou mensagem WhatsApp foi enviado. Por isso, autenticação real, persistência no banco, políticas RLS efetivamente aplicadas, integrações e configurações de produção continuam sem comprovação. Há também pendências de privacidade/LGPD. O lançamento deve aguardar as validações e correções listadas neste relatório.
+
+1. TESTES REALIZADOS
+
+- Revisão do código React, função serverless, scripts SQL, configurações de build e cabeçalhos da Vercel.
+- Build de produção: aprovado.
+- npm audit final: aprovado, zero vulnerabilidades reportadas após atualização das dependências.
+- Navegação da página inicial, âncoras e menu mobile: testados em navegador Chromium com dados fictícios.
+- Fluxo de agendamento até o login: seleção de serviço, profissional, data e horário testada sem gravar uma reserva.
+- Rascunho do agendamento: seleção local permaneceu após atualizar a página. Não foi testado fechar e reabrir o navegador.
+- Acesso sem sessão a /cliente: redirecionou ao login.
+- Validação de campos de cadastro: validada com formulário vazio.
+- Recuperação de senha: solicitação, retorno com link inválido, divergência entre senhas e atualização de senha testados com API local simulada. Nenhum e-mail real foi enviado.
+- Responsividade da página inicial e do agendamento: 320, 390, 767, 1023, 1920, 2560 e 3440 px de largura; não foi observada rolagem horizontal nesses fluxos.
+
+2. RESULTADO POR FUNCIONALIDADE
+
+APROVADO NOS TESTES LOCAIS COM MOCK:
+- Carregamento e navegação pública da página inicial.
+- Seleção de serviço, barbeiro, data e horário na interface.
+- Persistência local do rascunho após recarga.
+- Redirecionamento de visitante sem sessão de /cliente para /login.
+- Interface e validações do fluxo de recuperação de senha, incluindo confirmação de senha.
+
+NÃO VERIFICADO CONTRA SERVIÇOS REAIS:
+- Cadastro, login e logout de contas no Supabase.
+- Entrega de e-mail de recuperação e confirmação da nova senha pelo provedor real.
+- Perfil do cliente, painel administrativo e permissões efetivas no banco.
+- Criação, edição e cancelamento de reservas; persistência após nova sessão.
+- Aplicação das migrações SQL e políticas RLS no projeto Supabase ativo.
+- Envio de notificações pelo WhatsApp e resposta da API da Meta.
+- Tratamento de falhas reais de rede, banco ou serviços externos em todos os fluxos.
+
+3. PROBLEMAS E GRAVIDADE
+
+ALTO — Validação de produção pendente. As operações de autenticação, reservas, permissões e persistência não foram exercitadas em staging. A revisão do código SQL não prova que as migrações e políticas estejam aplicadas corretamente no banco utilizado.
+
+ALTO — Privacidade/LGPD. O fluxo contém uma nota breve sobre uso dos dados, mas não foi encontrada uma política de privacidade completa com finalidades, retenção, direitos dos titulares, contato e operadores envolvidos. Obter revisão adequada antes de coletar dados de clientes.
+
+ALTO — Recuperação de senha depende de configuração externa. O fluxo está implementado, mas não foi possível confirmar SMTP, entrega do e-mail ou URLs autorizadas no Supabase.
+
+MÉDIO — Variáveis externas. As credenciais privadas locais estavam configuradas como placeholders. A configuração da Vercel não foi acessada; portanto, não é possível confirmar se notificações WhatsApp funcionarão em produção.
+
+MÉDIO — Backups, restauração e monitoramento. Não foi possível confirmar plano de backup, teste de restauração, alertas ou monitoramento para Supabase/Vercel.
+
+MÉDIO — Testes automatizados. O projeto não possui scripts de teste automatizado; há apenas comandos de desenvolvimento, build e preview.
+
+MÉDIO — Segurança de navegador. A Vercel define HSTS e outros cabeçalhos úteis, mas não foi encontrada uma política Content-Security-Policy.
+
+BAIXO — SEO. Título e descrição básicos existem, mas não foram encontrados robots.txt nem sitemap.xml. O sitemap final depende do domínio publicado.
+
+4. DESEMPENHO E COMPATIBILIDADE
+
+O build informa os seguintes tamanhos compilados: chunk React 180,58 KB (59,45 KB gzip), chunk Supabase 225,39 KB (59,16 KB gzip) e CSS 50,28 KB (10,57 KB gzip). São tamanhos de artefatos, não uma medição de velocidade percebida.
+
+LCP, INP, CLS, memória, CPU, conexões lentas e dispositivos de baixo desempenho não foram medidos de forma confiável. Não foram executados testes específicos em Firefox, Safari ou Edge; os testes visuais foram feitos em Chromium.
+
+5. CORREÇÕES APLICADAS
+
+- Atualização de React Router, Vite e plugin React. Build passou e npm audit final reportou zero vulnerabilidades.
+- Proteção mais estrita do parâmetro de retorno após autenticação.
+- Implementação de solicitação e redefinição de senha por e-mail do Supabase, com validação da nova senha.
+- Criação de .env.example com nomes de variáveis e valores fictícios.
+- Atualização do README com as instruções de redirecionamento para recuperação de senha.
+
+6. PENDÊNCIAS ANTES DO LANÇAMENTO
+
+1. Executar testes ponta a ponta em um projeto Supabase de staging, com contas fictícias, cobrindo cadastro, confirmação, login, logout, recuperação, perfil, permissões e todas as operações de agendamento.
+2. Confirmar migrações, RLS, usuários administrativos e regras de acesso no banco de staging.
+3. Validar SMTP, URLs de redirecionamento e entrega real do e-mail de recuperação.
+4. Confirmar variáveis privadas da Vercel, templates aprovados e envio WhatsApp sem expor segredos.
+5. Publicar e revisar a política de privacidade/LGPD.
+6. Definir e testar backups, restauração, logs e alertas.
+7. Validar o domínio/HTTPS e, depois, publicar robots.txt e sitemap.xml apropriados.
+8. Repetir testes de responsividade e compatibilidade em Chrome, Edge, Firefox e Safari; medir Core Web Vitals em staging.
+
+7. AVALIAÇÃO FINAL
+
+O projeto compila, as dependências não apresentam vulnerabilidades conhecidas na auditoria executada e os fluxos locais testados funcionam com mocks. Isso não comprova o funcionamento do banco, autenticação ou integrações reais. Como há pendências de alto risco e a configuração de produção não foi validada, a classificação fundamentada nos testes efetivamente realizados é:
+
+NÃO APROVADO PARA LANÇAMENTO
